@@ -1,0 +1,93 @@
+(function() {
+
+    // Get the current logged-in user
+    var currentUser = gs.getUser();
+
+    // Get field values from the current record
+    var accessLevel = current.u_access_level;
+    var department = current.u_department;
+
+    // ------------------------------------------------
+    // RULE 1: ADMIN USERS
+    // ------------------------------------------------
+    // Admin can always access the record
+
+    if (currentUser.hasRole('admin')) {
+        answer = true;
+        return;
+    }
+
+
+    // ------------------------------------------------
+    // RULE 2: PUBLIC RECORD
+    // ------------------------------------------------
+    // Public records can be viewed by everyone
+
+    if (accessLevel == 'public') {
+        answer = true;
+        return;
+    }
+
+
+    // ------------------------------------------------
+    // RULE 3: INTERNAL RECORD
+    // ------------------------------------------------
+    // Internal records can be accessed only by
+    // users belonging to the same department
+
+    if (accessLevel == 'internal') {
+
+        var userDepartment = currentUser.getDepartmentID();
+
+        if (userDepartment == department) {
+            answer = true;
+        } else {
+            answer = false;
+        }
+
+        return;
+    }
+
+
+    // ------------------------------------------------
+    // RULE 4: CONFIDENTIAL RECORD
+    // ------------------------------------------------
+    // Confidential records can be accessed only by
+    // users having a special role
+
+    if (accessLevel == 'confidential') {
+
+        if (currentUser.hasRole('security_admin')) {
+            answer = true;
+        } else {
+            answer = false;
+        }
+
+        return;
+    }
+
+
+    // ------------------------------------------------
+    // RULE 5: RESTRICTED RECORD
+    // ------------------------------------------------
+    // Restricted records are accessible only by admin
+
+    if (accessLevel == 'restricted') {
+
+        if (currentUser.hasRole('admin')) {
+            answer = true;
+        } else {
+            answer = false;
+        }
+
+        return;
+    }
+
+
+    // ------------------------------------------------
+    // DEFAULT DENY
+    // ------------------------------------------------
+
+    answer = false;
+
+})();
